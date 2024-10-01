@@ -26,13 +26,13 @@ func DBinstance() *mongo.Client {
     }
 
     // This will ensure release of all resources if db query takes indefinite amount of time
-    ctx, cancle := context.WithTimeout(context.Background(), 10*time.second)
-    defer.cancle()
+    ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancle()
 
     err := client.Connect(ctx)
 
     if err!=nil{
-        log.fatal(err)
+        log.Fatal(err)
     }
 
     fmt.Println("Connected to the mongodb database successfully")
@@ -42,7 +42,7 @@ func DBinstance() *mongo.Client {
 
 var Client *mongo.Client = DBinstance() 
 
-func OpenCollection(client *monogo.Client, collectionName string) *mongo.Collection {
+func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 
     var collection *mongo.Collection = client.Database("cluster0").Collection(collectionName)
     return collection
