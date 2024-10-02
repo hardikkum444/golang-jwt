@@ -12,7 +12,9 @@ import (
 )
 
 func DBinstance() *mongo.Client {
+   
     err := godotenv.Load(".env")
+
     if err!=nil{
         log.Fatal("Error loading the .env file")
     }
@@ -29,9 +31,10 @@ func DBinstance() *mongo.Client {
     ctx, cancle := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancle()
 
-    err := client.Connect(ctx)
+    err = client.Connect(ctx)
 
     if err!=nil{
+        // no need of returning as after logging it calls exit(0) which then exits from the code base
         log.Fatal(err)
     }
 

@@ -5,20 +5,23 @@ import (
 "context"
 "fmt"
 "log"
-"strconv"
+// "strconv"
 "net/http"
 "time"
 "github.com/gin-gonic/gin"
 "github.com/go-playground/validator/v10"
 helper "golang-jwt/helpers"
+// database "golang-jwt/database"
 "golang-jwt/models"
 "golang-jwt/helpers"
 "golang.org/x/crypto/bcrypt"
 "go.mongodb.org/mongo-driver/bson"
+"go.mongodb.org/mongo-driver/mongo"
+"go.mongodb.org/mongo-driver/bson/primitive"
 
 )
 
-var userCollection *mongoCollection = database.OpenCollection(database.Client, "user")
+var userCollection *mongo.Collection = database.OpenCollection(database.Client, "user")
 var validate = validator.New()
 
 func HashPassword()
@@ -60,6 +63,25 @@ func Signup() gin.HandlerFunc {
         if count > 0{
             c.JSON(http.StatusInternalServerError, gin.H{"error":"email or phone number already exists"})
         }
+
+        user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+        user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+        user.id = primitive.NewObjectID()
+        user.User_id = user.ID.Hex()
+
+        token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, *&user.User_id)
+        user.Token = &token
+        user.Refresh_token = &refreshToken
+
+        resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
+        if insertErr != nil {
+            msg := fmt.Sprintf("User item was not created")
+            c.JSON(http.StatusInternalServerError, gin.H{"error":msg})
+            return
+        }
+
+        defer cancel()
+        c.JSON(http.StatusOK, resultInsertionNumber)
     }
 }
 
